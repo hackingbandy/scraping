@@ -12,7 +12,7 @@ def scrape_website(url):
         return None
 
 if __name__ == "__main__":
-    url = "https://google.com"
+    url = "https://g.co/kgs/KXvtS5V"
     soup = scrape_website(url)
     if soup:
         print(soup.title.string)  # Print the title of the webpage
