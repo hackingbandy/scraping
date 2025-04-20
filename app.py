@@ -76,13 +76,19 @@ with tab1:
     data = get_trends_data(keyword, geo_list, timeframe)
 
     if not data.empty:
-        st.write(f"Search Interest for '{keyword}' in {', '.join(geo_labels)}")
-        fig, ax = plt.subplots()
-        data.plot(ax=ax, title=f"Search Interest: {keyword}")
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Interest (0-100)")
-        ax.legend(geo_labels)
-        st.pyplot(fig)
+        # Rename columns to user-friendly labels
+        data.columns = geo_labels
+        
+        # Add a title above the chart
+        st.write(f"### Search Interest for '{keyword}' in {', '.join(geo_labels)}")
+        
+        # Display the line chart
+        st.line_chart(data)
+        
+        # Add axis descriptions below the chart
+        st.write("*X-axis: Date, Y-axis: Interest (0-100)*")
+        
+        # Keep the download button
         st.download_button("Download CSV", data.to_csv(index=True), "vegan_restaurant_trends.csv")
     else:
         st.warning("No data available. Try a broader keyword (e.g., 'vegan restaurant') or different timeframe.")
@@ -107,34 +113,34 @@ with tab2:
 
         # Rating Distribution
         st.subheader("Rating Distribution")
-        fig1, ax1 = plt.subplots()
-        sns.histplot(filtered_df['rating'], bins=5, ax=ax1, discrete=True)
-        ax1.set_xlabel("Rating")
-        ax1.set_ylabel("Count")
-        ax1.set_title("Distribution of Ratings")
-        st.pyplot(fig1)
+        rating_counts = filtered_df['rating'].value_counts().reindex([1, 2, 3, 4, 5], fill_value=0).sort_index()
+        rating_counts_df = rating_counts.to_frame(name='Count')
+        st.bar_chart(rating_counts_df)
+        st.write("*X-axis: Rating, Y-axis: Count*")
 
-        # Average Rating by Location
+        import plotly.express as px
+
         st.subheader("Average Rating by Location")
+
         avg_rating_by_location = filtered_df.groupby('location')['rating'].mean().sort_values(ascending=False)
-        fig2, ax2 = plt.subplots()
-        sns.barplot(x=avg_rating_by_location.values, y=avg_rating_by_location.index, ax=ax2)
-        ax2.set_xlabel("Average Rating")
-        ax2.set_ylabel("Location")
-        ax2.set_title("Average Rating by Location")
-        st.pyplot(fig2)
+        avg_rating_df = avg_rating_by_location.reset_index()
+
+        fig = px.bar(avg_rating_df, x='location', y='rating', labels={'rating': 'Average Rating'})
+        fig.update_layout(xaxis_tickangle=45, title="Average Rating by Location")
+
+        st.plotly_chart(fig)
+
+        st.write("*X-axis: Location, Y-axis: Average Rating*")
+
 
         # Rating Trend Over Time
         st.subheader("Rating Trend Over Time")
         filtered_df['month_year'] = filtered_df['timestamp'].dt.to_period('M').astype(str)
         avg_rating_by_time = filtered_df.groupby('month_year')['rating'].mean().reset_index()
-        fig3, ax3 = plt.subplots()
-        sns.lineplot(x='month_year', y='rating', data=avg_rating_by_time, ax=ax3)
-        ax3.set_xlabel("Month-Year")
-        ax3.set_ylabel("Average Rating")
-        ax3.set_title("Average Rating Over Time")
-        plt.xticks(rotation=45)
-        st.pyplot(fig3)
+        avg_rating_by_time = avg_rating_by_time.sort_values('month_year')
+        line_data = avg_rating_by_time.set_index('month_year')
+        st.line_chart(line_data)
+        st.write("*X-axis: Month-Year, Y-axis: Average Rating*")
 
         # Download filtered data
         st.subheader("Download Filtered Reviews")
