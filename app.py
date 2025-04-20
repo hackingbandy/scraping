@@ -68,10 +68,10 @@ def load_un_data(csv2_path):
 # Streamlit app
 st.title("Data Analysis App")
 
-# Define CSV path
-csv_path = os.path.join("develop", "scraping", "data", "kaspar_schmauser_all_reviews.csv")
+# Define CSV path for local add ""develop", "scraping", in path
+csv_path = os.path.join("data", "kaspar_schmauser_all_reviews.csv")
 st.write("Current working directory:", os.getcwd())
-csv2_path = os.path.join("develop", "scraping", "data", "un_data.csv")
+csv2_path = os.path.join("data", "un_data.csv")
 st.write("Looking for CSV at:", os.path.abspath(csv_path))
 st.write("Looking for CSV at:", os.path.abspath(csv2_path))
 
