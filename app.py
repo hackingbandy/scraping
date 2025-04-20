@@ -6,44 +6,44 @@ import time
 from retrying import retry
 import os
 import seaborn as sns
+#test
 
-# Initialize pytrends without retries parameter
+# Initialize pytrends
 pytrends = TrendReq(hl='de-DE', tz=60, timeout=(10, 25))
-time.sleep(1)  # Additional sleep after initialization
 
 # Retry logic for 429 errors
 def retry_if_429(exception):
     return isinstance(exception, Exception) and "429" in str(exception)
 
-# Fetch Google Trends data with retries
+# Fetch Google Trends data with retries and delays
 @st.cache_data
 @retry(stop_max_attempt_number=3, wait_exponential_multiplier=1000, wait_exponential_max=10000, retry_on_exception=retry_if_429)
 def get_trends_data(keyword, geo_list, timeframe='today 5-y'):
     try:
-        time.sleep(10)  # Increased delay to avoid rate limits
         data_dict = {}
         for geo in geo_list:
+            st.write(f"Fetching data for {geo}")
             pytrends.build_payload([keyword], cat=0, timeframe=timeframe, geo=geo)
             data = pytrends.interest_over_time()
             if not data.empty:
                 data = data.drop(columns=['isPartial'], errors='ignore')
                 data_dict[geo] = data[keyword]
+            st.write(f"Data fetched for {geo}")
+            time.sleep(30)  # Delay between requests to avoid rate limits
         if data_dict:
             return pd.DataFrame(data_dict)
         return pd.DataFrame()
     except Exception as e:
         st.error(f"Error fetching trends: {e}")
         return pd.DataFrame()
-    
-# Load and process CSV for reviews
+
 # Load and process CSV for reviews
 @st.cache_data
-def load_reviews_data():
+def load_reviews_data(csv_path):
+    if not os.path.exists(csv_path):
+        st.error(f"CSV file not found at {csv_path}. Please ensure 'kaspar_schmauser_all_reviews.csv' is in the 'data' folder next to this script.")
+        return pd.DataFrame()
     try:
-        csv_path = os.path.join("data", "kaspar_schmauser_all_reviews.csv")  # Fixed path
-        if not os.path.exists(csv_path):
-            st.error(f"CSV file not found at {csv_path}. Please ensure it exists in the 'data' folder.")
-            return pd.DataFrame()
         df = pd.read_csv(csv_path)
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
@@ -54,21 +54,26 @@ def load_reviews_data():
         st.error(f"Error loading CSV: {e}")
         return pd.DataFrame()
 
+# Streamlit app
+st.title("Data Analysis App")
+
+# Define CSV path
+csv_path = os.path.join("scraping", "data/kaspar_schmauser_all_reviews.csv")
+st.write("Current working directory:", os.getcwd())
+st.write("Looking for CSV at:", os.path.abspath(csv_path))
 
 # Create tabs
 tab1, tab2 = st.tabs(["Google Trends", "Reviews Analysis"])
 
-# Streamlit app
+# Tab 1: Google Trends
 with tab1:
-    st.title("Google Trends: Vegan Restaurants in Berlin vs. Nürnberg")
+    st.header("Google Trends: Vegan Restaurants in Berlin vs. Nürnberg")
     keyword = "vegan restaurant"
     st.write("Compare search interest for vegan restaurants in Berlin and Nürnberg.")
     geo_list = ["DE-BE", "DE-BY"]  # Berlin, Bavaria (proxy for Nürnberg)
     geo_labels = ["Berlin", "Nürnberg (Bavaria)"]
     timeframe = st.selectbox("Timeframe", ["today 5-y", "today 12-m", "today 3-m"], index=0)
     data = get_trends_data(keyword, geo_list, timeframe)
-
-
 
     if not data.empty:
         st.write(f"Search Interest for '{keyword}' in {', '.join(geo_labels)}")
@@ -78,14 +83,14 @@ with tab1:
         ax.set_ylabel("Interest (0-100)")
         ax.legend(geo_labels)
         st.pyplot(fig)
-        st.download_button("Download CSV", data.to_csv(index=True), "vegan_bowls_trends.csv")
+        st.download_button("Download CSV", data.to_csv(index=True), "vegan_restaurant_trends.csv")
     else:
         st.warning("No data available. Try a broader keyword (e.g., 'vegan restaurant') or different timeframe.")
+
+# Tab 2: Reviews Analysis
 with tab2:
     st.header("Kaspar Schmauser Reviews Analysis")
-    
-    # Load reviews data
-    df = load_reviews_data()
+    df = load_reviews_data(csv_path)
 
     if not df.empty:
         # Display raw data
@@ -141,4 +146,4 @@ with tab2:
             mime='text/csv'
         )
     else:
-        st.warning("No reviews data available. Please ensure 'data/kaspar_schmauser_all_reviews.csv' exists.")  
+        st.warning("No reviews data available. Please ensure 'kaspar_schmauser_all_reviews.csv' is in the 'data' folder.")
