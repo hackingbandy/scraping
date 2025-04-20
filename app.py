@@ -36,10 +36,11 @@ def get_trends_data(keyword, geo_list, timeframe='today 5-y'):
         return pd.DataFrame()
     
 # Load and process CSV for reviews
+# Load and process CSV for reviews
 @st.cache_data
 def load_reviews_data():
     try:
-        csv_path = os.path.join("data", "kaspar_schmauser_all_reviews.csv")
+        csv_path = os.path.join("data", "kaspar_schmauser_all_reviews.csv")  # Fixed path
         if not os.path.exists(csv_path):
             st.error(f"CSV file not found at {csv_path}. Please ensure it exists in the 'data' folder.")
             return pd.DataFrame()
