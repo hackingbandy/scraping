@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
-API_KEY = "AIzaSyDTHboiP8zf2wIBuupUAlTSsQuSiDsVODw"
+API_KEY = "Your Key"
 gmaps = googlemaps.Client(key=API_KEY)
 
 locations = [
