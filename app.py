@@ -63,7 +63,7 @@ st.write("Current working directory:", os.getcwd())
 st.write("Looking for CSV at:", os.path.abspath(csv_path))
 
 # Create tabs
-tab1, tab2 = st.tabs(["Google Trends", "Reviews Analysis"])
+tab1, tab2, tab3 = st.tabs(["Google Trends", "Reviews Analysis", "Unternehmensanalyse"])
 
 # Tab 1: Google Trends
 with tab1:
@@ -153,3 +153,10 @@ with tab2:
         )
     else:
         st.warning("No reviews data available. Please ensure 'kaspar_schmauser_all_reviews.csv' is in the 'data' folder.")
+
+# Tab 3: Unternehmensanalyse
+with tab3:
+    st.header("Unternehmensanalyse")
+    st.write("This section is under development. Please check back later.")
+    # Placeholder for future content
+    st.write("Content coming soon...")
