@@ -58,7 +58,7 @@ def load_reviews_data(csv_path):
 st.title("Data Analysis App")
 
 # Define CSV path
-csv_path = os.path.join("scraping", "data/kaspar_schmauser_all_reviews.csv")
+csv_path = os.path.join("develop", "scraping", "data", "kaspar_schmauser_all_reviews.csv")
 st.write("Current working directory:", os.getcwd())
 st.write("Looking for CSV at:", os.path.abspath(csv_path))
 
