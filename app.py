@@ -37,7 +37,7 @@ def get_trends_data(keyword, geo_list, timeframe='today 5-y'):
         st.error(f"Error fetching trends: {e}")
         return pd.DataFrame()
 
-# Load and process CSV for reviews
+# Load and process CSV
 @st.cache_data
 def load_reviews_data(csv_path):
     if not os.path.exists(csv_path):
@@ -54,13 +54,26 @@ def load_reviews_data(csv_path):
         st.error(f"Error loading CSV: {e}")
         return pd.DataFrame()
 
+def load_un_data(csv2_path):
+    if not os.path.exists(csv2_path):
+        st.error(f"CSV file not found at {csv2_path}. Please ensure 'un_data.csv' is in the 'data' folder next to this script.")
+        return pd.DataFrame()
+    try:
+        df = pd.read_csv(csv2_path)
+        return df
+    except Exception as e:
+        st.error(f"Error loading CSV: {e}")
+        return pd.DataFrame()
+
 # Streamlit app
 st.title("Data Analysis App")
 
 # Define CSV path
 csv_path = os.path.join("develop", "scraping", "data", "kaspar_schmauser_all_reviews.csv")
 st.write("Current working directory:", os.getcwd())
+csv2_path = os.path.join("develop", "scraping", "data", "un_data.csv")
 st.write("Looking for CSV at:", os.path.abspath(csv_path))
+st.write("Looking for CSV at:", os.path.abspath(csv2_path))
 
 # Create tabs
 tab1, tab2, tab3 = st.tabs(["Google Trends", "Reviews Analysis", "Unternehmensanalyse"])
@@ -157,6 +170,9 @@ with tab2:
 # Tab 3: Unternehmensanalyse
 with tab3:
     st.header("Unternehmensanalyse")
-    st.write("This section is under development. Please check back later.")
-    # Placeholder for future content
-    st.write("Content coming soon...")
+    df = load_un_data(csv2_path)
+    if not df.empty:
+        st.markdown("### Raw Unternehmensanalyse Data")
+        st.dataframe(df)
+        st.markdown("### Bilanzsumme by Year")
+        st.bar_chart(df.set_index('Jahr')['Bilanzsumme'])
